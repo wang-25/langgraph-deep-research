@@ -1,0 +1,60 @@
+[project]
+name = "helloagents-deep-researcher-langgraph"
+version = "0.1.0"
+description = "Deep research agent rebuilt on LangChain / LangGraph 1.0 (HelloAgents 版的功能等价实现)"
+readme = "README.md"
+# 许可：上游 https://github.com/datawhalechina/hello-agents 使用 CC BY-NC-SA 4.0，
+# 本项目是它的衍生作品（同样的工作流、复用了 utils / 提示词 / HTTP 契约），
+# 因此按 ShareAlike 条款沿用同一许可——**不要**改成 MIT。
+# 注意 CC BY-NC-SA 含「非商业性使用」，商业场景请先与上游确认。
+license = "CC-BY-NC-SA-4.0"
+requires-python = ">=3.10"
+dependencies = [
+    # ---- LangChain / LangGraph 栈（本项目的主角） ----
+    "langchain-core>=1.0.0",
+    "langchain-openai>=1.0.0",
+    "langgraph>=1.0.0",
+    # ---- Web 服务 ----
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.4.0",
+    "python-dotenv>=1.0.1",
+    # ---- HTTP（搜索后端直接走 REST，不引入额外 SDK） ----
+    "httpx>=0.27.0",
+]
+
+[project.optional-dependencies]
+# DuckDuckGo 需要额外包；Tavily / Perplexity / SearXNG 走 httpx，无需 SDK
+duckduckgo = ["ddgs>=9.0.0"]
+# LangSmith 追踪（只配了 key 才会启用，没装则自动跳过）
+observability = ["langsmith>=0.2.0"]
+# 装上 langchain 主包后，Agent 循环会切到官方新的 create_agent API
+# （否则退回 langgraph.prebuilt.create_react_agent，功能一致但会有弃用告警）
+agents = ["langchain>=1.0.0"]
+dev = ["ruff>=0.6.1", "mypy>=1.11.1", "pytest>=8.0.0"]
+
+[build-system]
+requires = ["setuptools>=77.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# 源码布局说明
+# ------------
+# 包根是 `src/`，但里面的模块**本身就是顶层模块**（代码里写的是
+# `import config` / `import graph.nodes`，而不是 `from src import config`）。
+# 所以必须分两处声明，否则 setuptools 会去找 `src/src`：
+#   * package-dir 把包根指向 src；
+#   * packages   列子包（含 __init__.py 的目录）；
+#   * py-modules 列单文件顶层模块。
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["graph", "services"]
+py-modules = ["config", "main", "observability", "prompts", "utils"]
+
+[tool.ruff]
+lint.select = ["E", "F", "I", "UP", "B"]
+lint.ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true

@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+
+# 环境变量与本地数据
+.env
+.env.local
+
+# 研究产物（笔记是运行时数据，不入库）
+notes/
+notes-offline-smoke/
+
+# 编辑器
+.idea/
+.vscode/
+.DS_Store
